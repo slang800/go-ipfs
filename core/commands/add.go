@@ -133,9 +133,7 @@ remains to be implemented.
 				}
 
 				if !hash {
-					n.Pinning.RemovePinWithMode(rnk, pin.Indirect)
 					n.Pinning.PinWithMode(rnk, pin.Recursive)
-
 					err = n.Pinning.Flush()
 					if err != nil {
 						res.SetError(err, cmds.ErrNormal)
@@ -239,14 +237,12 @@ func add(n *core.IpfsNode, reader io.Reader, useTrickle bool) (*dag.Node, error)
 			reader,
 			n.DAG,
 			chunk.DefaultSplitter,
-			importer.PinIndirectCB(n.Pinning),
 		)
 	} else {
 		node, err = importer.BuildDagFromReader(
 			reader,
 			n.DAG,
 			chunk.DefaultSplitter,
-			importer.PinIndirectCB(n.Pinning),
 		)
 	}
 
@@ -325,12 +321,10 @@ func addDir(n *core.IpfsNode, dir files.File, out chan interface{}, progress boo
 		return nil, err
 	}
 
-	k, err := n.DAG.Add(tree)
+	_, err = n.DAG.Add(tree)
 	if err != nil {
 		return nil, err
 	}
-
-	n.Pinning.PinWithMode(k, pin.Indirect)
 
 	return tree, nil
 }
