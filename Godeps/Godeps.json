@@ -79,11 +79,6 @@
 			"Rev": "50e7633d5f27d81490026a13e5b92d2e42d8c6bb"
 		},
 		{
-			"ImportPath": "github.com/fzzy/radix/redis",
-			"Comment": "v0.5.1",
-			"Rev": "27a863cdffdb0998d13e1e11992b18489aeeaa25"
-		},
-		{
 			"ImportPath": "github.com/gogo/protobuf/io",
 			"Rev": "0ac967c269268f1af7d9bcc7927ccc9a589b2b36"
 		},
@@ -130,7 +125,7 @@
 		},
 		{
 			"ImportPath": "github.com/jbenet/go-datastore",
-			"Rev": "245a981af3750d7710db13dca731ba8461aa1095"
+			"Rev": "08b9059893d31755b7aaad2d59cd694bf97a35b2"
 		},
 		{
 			"ImportPath": "github.com/jbenet/go-detect-race",
