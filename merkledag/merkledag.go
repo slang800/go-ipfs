@@ -112,9 +112,7 @@ func (n *dagService) Remove(nd *Node) error {
 
 // FetchGraph asynchronously fetches all nodes that are children of the given
 // node, and returns a channel that may be waited upon for the fetch to complete
-func FetchGraph(ctx context.Context, root *Node, serv DAGService) chan error {
-	//done := make(chan error, len(root.Links))
-
+func FetchGraph(ctx context.Context, root *Node, serv DAGService) <-chan error {
 	var keys []key.Key
 	for _, l := range root.Links {
 		keys = append(keys, key.Key(l.Hash))
@@ -132,18 +130,18 @@ func FetchGraph(ctx context.Context, root *Node, serv DAGService) chan error {
 			if err != nil {
 				select {
 				case out <- err:
-					return
 				case <-ctx.Done():
 				}
+				return
 			}
 
 			err = <-FetchGraph(ctx, nd, serv)
 			if err != nil {
 				select {
 				case out <- err:
-					return
 				case <-ctx.Done():
 				}
+				return
 			}
 		}(n)
 	}

@@ -48,3 +48,11 @@ func (w *writecache) Put(b *blocks.Block) error {
 func (w *writecache) AllKeysChan(ctx context.Context) (<-chan key.Key, error) {
 	return w.blockstore.AllKeysChan(ctx)
 }
+
+func (w *writecache) Lock() func() {
+	return w.blockstore.Lock()
+}
+
+func (w *writecache) RLock() func() {
+	return w.blockstore.RLock()
+}
