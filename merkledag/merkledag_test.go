@@ -227,9 +227,7 @@ func TestFetchGraph(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	done := FetchGraph(context.TODO(), root, ds)
-
-	err = <-done
+	err = FetchGraph(context.TODO(), root, ds)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -249,9 +247,7 @@ func TestFetchGraphOther(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	done := FetchGraph(context.TODO(), root, dservs[1])
-
-	err = <-done
+	err = FetchGraph(context.TODO(), root, dservs[1])
 	if err != nil {
 		t.Fatal(err)
 	}

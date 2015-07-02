@@ -3,7 +3,6 @@ package merkledag
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	blocks "github.com/ipfs/go-ipfs/blocks"
@@ -110,48 +109,86 @@ func (n *dagService) Remove(nd *Node) error {
 	return n.Blocks.DeleteBlock(k)
 }
 
-// FetchGraph asynchronously fetches all nodes that are children of the given
-// node, and returns a channel that may be waited upon for the fetch to complete
-func FetchGraph(ctx context.Context, root *Node, serv DAGService) <-chan error {
-	var keys []key.Key
-	for _, l := range root.Links {
-		keys = append(keys, key.Key(l.Hash))
-	}
+// FetchGraph fetches all nodes that are children of the given node
+func FetchGraph(ctx context.Context, root *Node, serv DAGService) error {
+	toprocess := make(chan []key.Key, 8)
+	nodes := make(chan *Node, 8)
+	errs := make(chan error, 1)
 
-	out := make(chan error)
-	nodes := serv.GetNodes(ctx, keys)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	defer close(toprocess)
 
-	var wg sync.WaitGroup
-	for _, n := range nodes {
-		wg.Add(1)
-		go func(n NodeGetter) {
-			defer wg.Done()
-			nd, err := n.Get(ctx)
-			if err != nil {
+	go fetchNodes(ctx, serv, toprocess, nodes, errs)
+
+	nodes <- root
+	live := 1
+
+	for {
+		select {
+		case nd, ok := <-nodes:
+			if !ok {
+				return nil
+			}
+
+			var keys []key.Key
+			for _, lnk := range nd.Links {
+				keys = append(keys, key.Key(lnk.Hash))
+			}
+			keys = dedupeKeys(keys)
+
+			// keep track of open request, when zero, we're done
+			live += len(keys) - 1
+
+			if live == 0 {
+				return nil
+			}
+
+			if len(keys) > 0 {
 				select {
-				case out <- err:
+				case toprocess <- keys:
 				case <-ctx.Done():
+					return ctx.Err()
 				}
+			}
+		case err := <-errs:
+			return err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
+func fetchNodes(ctx context.Context, ds DAGService, in <-chan []key.Key, out chan<- *Node, errs chan<- error) {
+	defer close(out)
+	for {
+		select {
+		case ks, ok := <-in:
+			if !ok {
 				return
 			}
 
-			err = <-FetchGraph(ctx, nd, serv)
-			if err != nil {
-				select {
-				case out <- err:
-				case <-ctx.Done():
-				}
-				return
+			ng := ds.GetNodes(ctx, ks)
+			for _, g := range ng {
+				go func(g NodeGetter) {
+					nd, err := g.Get(ctx)
+					if err != nil {
+						select {
+						case errs <- err:
+						case <-ctx.Done():
+						}
+						return
+					}
+
+					select {
+					case out <- nd:
+					case <-ctx.Done():
+						return
+					}
+				}(g)
 			}
-		}(n)
+		}
 	}
-
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-
-	return out
 }
 
 // FindLinks searches this nodes links for the given key,

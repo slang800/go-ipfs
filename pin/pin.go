@@ -101,11 +101,9 @@ func (p *pinner) Pin(ctx context.Context, node *mdag.Node, recurse bool) error {
 		}
 
 		// fetch entire graph
-		done := mdag.FetchGraph(ctx, node, p.dserv)
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-done:
+		err := mdag.FetchGraph(ctx, node, p.dserv)
+		if err != nil {
+			return err
 		}
 
 		p.recursePin.AddBlock(k)
