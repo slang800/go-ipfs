@@ -58,7 +58,7 @@ func (gcs *GCSet) AddDag(ds dag.DAGService, root key.Key) error {
 //
 // The routine then iterates over every block in the blockstore and
 // deletes any block that is not found in the marked set.
-func GC(ctx context.Context, bs bstore.Blockstore, pn pin.Pinner) (<-chan key.Key, error) {
+func GC(ctx context.Context, bs bstore.GCBlockstore, pn pin.Pinner) (<-chan key.Key, error) {
 	unlock := bs.Lock()
 	defer unlock()
 

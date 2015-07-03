@@ -8,7 +8,7 @@ import (
 )
 
 // WriteCached returns a blockstore that caches up to |size| unique writes (bs.Put).
-func WriteCached(bs Blockstore, size int) (Blockstore, error) {
+func WriteCached(bs Blockstore, size int) (*writecache, error) {
 	c, err := lru.New(size)
 	if err != nil {
 		return nil, err
@@ -50,9 +50,9 @@ func (w *writecache) AllKeysChan(ctx context.Context) (<-chan key.Key, error) {
 }
 
 func (w *writecache) Lock() func() {
-	return w.blockstore.Lock()
+	return w.blockstore.(GCBlockstore).Lock()
 }
 
 func (w *writecache) RLock() func() {
-	return w.blockstore.RLock()
+	return w.blockstore.(GCBlockstore).RLock()
 }

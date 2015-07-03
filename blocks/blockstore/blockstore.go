@@ -33,12 +33,16 @@ type Blockstore interface {
 	Put(*blocks.Block) error
 
 	AllKeysChan(ctx context.Context) (<-chan key.Key, error)
+}
+
+type GCBlockstore interface {
+	Blockstore
 
 	Lock() func()
 	RLock() func()
 }
 
-func NewBlockstore(d ds.ThreadSafeDatastore) Blockstore {
+func NewBlockstore(d ds.ThreadSafeDatastore) *blockstore {
 	dd := dsns.Wrap(d, BlockPrefix)
 	return &blockstore{
 		datastore: dd,

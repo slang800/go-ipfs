@@ -40,7 +40,7 @@ func getMockDagServ(t testing.TB) (mdag.DAGService, pin.Pinner) {
 	return dserv, pin.NewPinner(tsds, dserv)
 }
 
-func getMockDagServAndBstore(t testing.TB) (mdag.DAGService, blockstore.Blockstore, pin.Pinner) {
+func getMockDagServAndBstore(t testing.TB) (mdag.DAGService, blockstore.GCBlockstore, pin.Pinner) {
 	dstore := ds.NewMapDatastore()
 	tsds := sync.MutexWrap(dstore)
 	bstore := blockstore.NewBlockstore(tsds)
@@ -470,7 +470,7 @@ func TestSparseWrite(t *testing.T) {
 	}
 }
 
-func basicGC(t *testing.T, bs blockstore.Blockstore, pins pin.Pinner) {
+func basicGC(t *testing.T, bs blockstore.GCBlockstore, pins pin.Pinner) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // in case error occurs during operation
 	out, err := gc.GC(ctx, bs, pins)
