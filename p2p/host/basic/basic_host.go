@@ -170,7 +170,7 @@ func (h *BasicHost) NewStream(pid protocol.ID, p peer.ID) (inet.Stream, error) {
 
 	logStream := mstream.WrapStream(s, pid, h.bwc)
 
-	if err := msmux.SelectProtoOrFail(string(pid), s); err != nil {
+	if err := msmux.SelectProtoOrFail(string(pid), logStream); err != nil {
 		logStream.Close()
 		return nil, err
 	}
